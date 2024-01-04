@@ -1,0 +1,97 @@
+[tool.poetry]
+name = "vacuum-openapi"
+version = "0.1.0"
+description = "Python bindings for the vacuum OpenAPI linting/validation Go library"
+authors = ["Zach Kanzler <they4kman@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+packages = [
+    { include = "vacuum" },
+]
+include = [
+    { path = "LICENSE", format = "sdist" },
+    { path = "README.md", format = "sdist" },
+    { path = "CHANGELOG.md", format = "sdist" },
+    { path = "tests", format = "sdist" },
+    { path = "vacuum_downloader.py", format = "sdist" },
+    { path = "vacuum/lib/vacuum", format = ["wheel", "sdist"] },
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+orjson = ">2.2.0,<4.0.0"
+pydantic = ">1.8.0,<3.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.4"
+pytest-asyncio = "^0.23.3"
+pytest-lambda = "^2.2.0"
+pytest-assert-utils = "^0.3.1"
+
+[build-system]
+requires = ["poetry-core", "setuptools", "urllib3", "wheel"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.build]
+script = "build_wheels.py"
+generate-setup-file = true
+
+[tool.pytest.ini_options]
+# Running "pytest" without specifying paths will use these as defaults
+testpaths = [
+    "tests",
+
+    # doctest paths
+    "vacuum",
+]
+
+
+# Only search for tests within files matching these patterns
+python_files = [
+    "tests.py",
+    "test_*.py",
+]
+
+# Discover tests within classes matching these patterns
+python_classes = [
+    "Test*",
+    "Case*",
+    "Context*",
+    "Describe*",
+]
+
+# Only methods matching these patterns are considered tests
+python_functions = [
+    "test_*",
+    "it_*",
+    "its_*",
+]
+
+
+# Formatting used when printing logs out
+log_format = '[%(asctime)s.%(msecs)03d][%(levelname)-7s][%(name)s] %(message)s'
+log_file_format = '[%(asctime)s.%(msecs)03d][%(levelname)-7s][%(name)s] %(message)s'
+
+log_date_format = '%H:%M:%S'
+log_file_date_format = '%H:%M:%S'
+
+
+# Extra options:
+addopts = [
+    # Verbosity
+    #  0 - hide test names while running (only showing ".", "F", etc)
+    #  1 - show full test names while running
+    #  2 - don't truncate assertion failure printouts (includes full diffs)
+    "--verbosity=2",
+
+    # Show an abbreviated traceback format
+    "--tb=short",
+
+    # Also run doctests found within modules
+    "--doctest-modules",
+]
+
+# https://pytest-asyncio.readthedocs.io/en/latest/concepts.html#test-discovery-modes
+asyncio_mode = "auto"
