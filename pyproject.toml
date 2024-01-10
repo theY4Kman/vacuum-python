@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vacuum-openapi"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python bindings for the vacuum OpenAPI linting/validation Go library"
 authors = ["Zach Kanzler <they4kman@gmail.com>"]
 license = "MIT"
