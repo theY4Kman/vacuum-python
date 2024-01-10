@@ -42,7 +42,10 @@ async def lint_async(spec: str | bytes, *, ruleset: str | bytes) -> list[LintRes
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
-            pass_fds=[ruleset_pipe],
+            # NOTE: our fancy named pipe object is explicitly converted to int
+            #       under asyncio, to support uvloop (and possibly other
+            #       loops), which does not integerize objects passed here.
+            pass_fds=[int(ruleset_pipe)],
         )
         stdout_bytes, stderr_bytes = await proc.communicate(spec)
 
