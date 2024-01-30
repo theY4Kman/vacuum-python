@@ -1,4 +1,10 @@
+from __future__ import annotations
+
+import random
+import string
 from pathlib import Path
+from string import digits
+from typing import Iterable
 
 import orjson
 import pytest
@@ -42,9 +48,65 @@ empty_spec = static_fixture(
             'description': 'An empty spec',
             'version': '0.1.0',
         },
+        'paths': {},
     }),
     scope='session',
 )
+
+
+def iter_random_strings(n: int | None = None) -> Iterable[str]:
+    corpus = string.ascii_lowercase + digits
+
+    while n is None or n > 0:
+        yield ''.join(random.choices(corpus, k=8))
+        n -= 1
+
+
+@pytest.fixture(scope='session')
+def large_spec():
+    spec = {
+        'openapi': '3.1.0',
+        'info': {
+            'title': 'Large',
+            'description': 'A large spec',
+            'version': '0.1.0',
+        },
+        'tags': [],
+        'paths': {},
+    }
+
+    for resource in iter_random_strings(35_000):
+        spec['paths'][f'/{resource}'] = {
+            'get': {
+                'summary': f'List {resource} resources',
+                'description': f'Returns a list of {resource} resources.',
+                'operationId': f'list{resource.capitalize()}s',
+                'tags': [resource],
+                'responses': {
+                    '200': {
+                        'description': f'A list of {resource} resources.',
+                        'content': {
+                            'application/json': {
+                                'schema': {
+                                    'type': 'array',
+                                    'items': {
+                                        'type': 'object',
+                                    },
+                                },
+                                'example': {},
+                            },
+                        },
+                    },
+                },
+            },
+        }
+
+        spec['tags'].append({
+            'name': resource,
+            'description': f'A {resource} resource.',
+        })
+
+    return orjson.dumps(spec)
 
 
 @pytest.mark.asyncio
@@ -66,23 +128,20 @@ async def it_lints_with_empty_ruleset(linter, empty_spec, ruleset_empty):
 
 
 @pytest.mark.asyncio
-async def it_lints_with_recommended_ruleset(linter, empty_spec, ruleset_recommended):
-    results = await linter(empty_spec, ruleset=ruleset_recommended)
+@pytest.mark.parametrize('spec_fixture', [
+    pytest.param('empty_spec', id='empty'),
+    pytest.param('large_spec', id='large'),
+])
+async def it_lints_with_recommended_ruleset(linter, request, spec_fixture, ruleset_recommended):
+    spec = request.getfixturevalue(spec_fixture)
+    results = await linter(spec, ruleset=ruleset_recommended)
 
-    missing_prop_results = [
-        decl.Model(
-            message=f'Schema: missing properties: {prop!r}',
-            path='',
-            rule_id='oas3-schema',
-        )
-        for prop in ('paths', 'components', 'webhooks')
-    ]
     no_servers_result = decl.Model(
-        message='No servers defined for the specification',
+        message='no servers defined for the specification',
         path='$.servers',
         rule_id='oas3-api-servers',
     )
 
-    expected = decl.List.containing_exactly(*missing_prop_results, no_servers_result)
+    expected = decl.List.containing_exactly(no_servers_result)
     actual = results
     assert expected == actual
