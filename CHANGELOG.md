@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+## [0.2.0] — 2024-01-30
 ### Changed
 - Upgrade vacuum from 0.6.3 to 0.8.5
 
