@@ -17,9 +17,8 @@ def build(setup_kwargs):
     from vacuum_downloader import ensure_vacuum_binary_installed
 
     for plat, arch, bdist_plat in [
-        # Disable until macosx platform tags are understood
-        # ('darwin', 'arm64'),
-        # ('darwin', 'x86_64'),
+        ('darwin', 'arm64', 'macosx_11_0_arm64'),
+        ('darwin', 'x86_64', 'macosx_10_9_x86_64'),
         ('linux', 'arm64', 'manylinux2014_aarch64'),
         ('linux', 'i386', 'manylinux2014_i686'),
         ('linux', 'x86_64', 'manylinux2014_x86_64'),
